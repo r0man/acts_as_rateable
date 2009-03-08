@@ -9,6 +9,7 @@ require 'test/unit'
 require File.expand_path(File.join(ENV['RAILS_ROOT'], 'config/environment.rb'))
 
 class Article < ActiveRecord::Base
+  acts_as_rateable :range => (1..5)
 end
 
 class User < ActiveRecord::Base

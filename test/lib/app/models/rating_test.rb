@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/test_helper.rb'
+require File.dirname(__FILE__) + '/../../../test_helper.rb'
 
-class RatingTest < Test::Unit::TestCase
+class RatingTest < ActiveSupport::TestCase
 
   load_schema
 
@@ -16,22 +16,22 @@ class RatingTest < Test::Unit::TestCase
 
   end
 
-  def test_belongs_to_user
+  test "belongs to user" do
     assert_equal @alice, @rating_alice.user
     assert_equal @bob, @rating_bob.user
   end
 
-  def test_belongs_to_rateable
+  test "belongs to rateable" do
     assert_equal @article, @rating_alice.rateable
     assert_equal @article, @rating_bob.rateable
   end
 
-  def test_rating
+  test "rating" do
     assert_equal 1, @rating_alice.rating
     assert_equal 2, @rating_bob.rating
   end
 
-  def test_find_ratings_by_user
+  test "find ratings by user" do
     assert_equal [@rating_alice], Rating.find_ratings_by_user(@alice)
     assert_equal [@rating_bob], Rating.find_ratings_by_user(@bob)
   end

@@ -9,14 +9,15 @@ module Juixe
 
       module ClassMethods
 
-        def acts_as_rateable(options = { })
+        def acts_as_rateable(definitions = { })
 
-          has_many :ratings, :as => :rateable, :dependent => options[:dependent] || :destroy
           include Juixe::Acts::Rateable::InstanceMethods
           extend Juixe::Acts::Rateable::SingletonMethods
 
+          has_many :ratings, :as => :rateable, :dependent => definitions[:dependent] || :delete_all
+
           write_inheritable_attribute(:rating_definitions, Hash.new) if rating_definitions.nil?
-          rating_definitions.update(options)
+          rating_definitions.update(definitions)
 
         end
 
@@ -31,28 +32,30 @@ module Juixe
 
         # Helper method to lookup for ratings for a given object.
         # This method is equivalent to obj.ratings
-        def find_ratings_for(obj)
-          rateable   = ActiveRecord::Base.send(:class_name_of_active_record_descendant, self).to_s
-          conditions = ["rateable_id = ? and rateable_type = ?", obj.id, rateable]
-          Rating.find(:all, :conditions => conditions, :order => "created_at DESC")
+        def find_ratings_for(instance)
+          Rating.find(:all, :conditions => { :rateable_id => instance.id, :rateable_type => rateable_type }, :order => "created_at DESC")
         end
 
         # Helper class method to lookup ratings for
         # the mixin rateable type written by a given user.
         # This method is NOT equivalent to Rating.find_ratings_for_user
         def find_ratings_by_user(user)
-          rateable = ActiveRecord::Base.send(:class_name_of_active_record_descendant, self).to_s
-          Rating.find(:all, :conditions => ["user_id = ? and rateable_type = ?", user.id, rateable], :order => "created_at DESC")
+          Rating.find(:all, :conditions => { :user_id => user.id, :rateable_type => rateable_type }, :order => "created_at DESC")
         end
 
         # Helper class method to lookup rateable instances
         # with a given rating.
         def find_by_rating(rating)
-          rateable = ActiveRecord::Base.send(:class_name_of_active_record_descendant, self).to_s
-          ratings = Rating.find(:all, :conditions => ["rating = ? and rateable_type = ?", rating, rateable], :order => "created_at DESC")
-          rateables = []
-          ratings.each { |r| rateables << r.rateable }
-          rateables.uniq!
+
+          Rating.find(:all, :conditions => { :rating => rating,  :rateable_type => rateable_type}, :order => "created_at DESC").collect do |rating|
+            rating.rateable
+          end.uniq
+
+        end
+
+        def rateable_type
+          # ActiveRecord::Base.send(:class_name_of_active_record_descendant, self).to_s # TODO: Why the direct descendant?
+          self.to_s
         end
 
       end
@@ -60,13 +63,22 @@ module Juixe
       # This module contains instance methods
       module InstanceMethods
 
-        # Helper method that defaults the current time to the submitted field.
         def add_rating(rating)
+          delete_ratings_by_user(rating.user)
           ratings << rating
         end
 
+        def delete_ratings_by_user(user)
+
+          if user
+            Rating.delete_all(["rateable_type = ? AND rateable_id = ? AND user_id = ?", self.class.to_s, self.id, user.id])
+            reload
+          end
+
+        end
+
         def rate(rating, user = nil)
-          delete_previous_ratings(user)
+          delete_ratings_by_user(user)
           create_rating(rating, user)
         end
 
@@ -106,10 +118,6 @@ module Juixe
           rating
         end
 
-        def delete_previous_ratings(user)
-          Rating.delete_all(["rateable_type = ? AND rateable_id = ? AND user_id = ?", self.class.to_s, self.id, user.id])
-        end
-
         def validate_rating!(rating)
 
           if (range = self.class.rating_definitions[:range]) and !range.include?(rating.to_i)
@@ -132,3 +140,5 @@ end
   ActiveSupport::Dependencies.load_once_paths.delete(path)
 
 end
+
+ActiveRecord::Base.send :include, Juixe::Acts::Rateable

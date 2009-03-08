@@ -9,11 +9,11 @@ ActiveRecord::Schema.define(:version => 0) do
   end
 
   create_table :ratings, :force => true do |t|
-    t.string   :rateable_type, :null => false
-    t.integer  :rateable_id,   :null => false
-    t.integer  :user_id,       :null => false
-    t.integer  :rating,        :null => false
-    t.datetime :created_at,    :null => false
+    t.string   :rateable_type
+    t.integer  :rateable_id
+    t.integer  :user_id
+    t.integer  :rating
+    t.datetime :created_at
   end
 
 end

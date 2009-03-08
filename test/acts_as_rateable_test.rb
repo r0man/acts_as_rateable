@@ -1,8 +1,17 @@
-require 'test/unit'
+require 'test_helper'
 
-class ActsAsRateableTest < Test::Unit::TestCase
+class ActsAsRateableTest < ActiveSupport::TestCase
+
+  load_schema
+
+  class Article < ActiveRecord::Base
+  end
+
+  class User < ActiveRecord::Base
+  end
+
   # Replace this with your real tests.
-  def test_this_plugin
-    flunk
+  test "the truth" do
+    assert true
   end
 end

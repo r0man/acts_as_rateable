@@ -1,8 +1,2 @@
 Description:
-    Explain the generator
-
-Example:
-    ./script/generate acts_as_rateable Thing
-
-    This will create:
-        what/will/it/create
+    Create a migration that creates the 'ratings' database table.

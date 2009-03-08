@@ -1,0 +1,22 @@
+class <%= migration_name %> < ActiveRecord::Migration
+
+  def self.up
+
+    create_table :ratings do |t|
+      t.string  :rateable_type
+      t.integer :rateable_id
+      t.integer :user_id
+      t.integer :rating
+    end
+
+    add_index :ratings, [:rateable_type, :rateable_id, :user_id]
+    add_index :ratings, [:rateable_type, :rateable_id, :rating]
+
+  end
+
+  def self.down
+    drop_table :ratings
+  end
+
+end
+

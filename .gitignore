@@ -2,3 +2,4 @@
 /doc
 /test/acts_as_rateable.sqlite3.db
 /test/debug.log
+/pkg/acts_as_rateable-0.0.1.gem

@@ -109,12 +109,12 @@ module Juixe
 
         def build_rating(rating, user = nil)
           validate_rating!(rating)
-          ratings.create(:rating => rating, :user => user)
+          ratings.build(:rating => rating, :user => user)
         end
 
         def create_rating(rating, user = nil)
           rating = build_rating(rating, user)
-          rating.save
+          rating.save!
           rating
         end
 

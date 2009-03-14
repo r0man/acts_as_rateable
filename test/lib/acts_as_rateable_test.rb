@@ -34,6 +34,12 @@ class ActsAsRateableTest < ActiveSupport::TestCase
 
   end
 
+  test "rate should create one rating" do
+    before = @article.ratings.size
+    @article.rate(1, @alice)
+    assert_equal before + 1, @article.ratings.size
+  end
+
   test "add ratings from multiple users" do
 
     @article.add_rating Rating.new(:rateable_type => @article.class.to_s, :rateable_id => @article.id, :rating => 1, :user => @alice)

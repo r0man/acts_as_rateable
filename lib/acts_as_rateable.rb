@@ -54,8 +54,7 @@ module Juixe
         end
 
         def rateable_type
-          # ActiveRecord::Base.send(:class_name_of_active_record_descendant, self).to_s # TODO: Why the direct descendant?
-          self.to_s
+          ActiveRecord::Base.send(:class_name_of_active_record_descendant, self).to_s
         end
 
       end
@@ -71,7 +70,7 @@ module Juixe
         def delete_ratings_by_user(user)
 
           if user
-            Rating.delete_all(["rateable_type = ? AND rateable_id = ? AND user_id = ?", self.class.to_s, self.id, user.id])
+            Rating.delete_all(["rateable_type = ? AND rateable_id = ? AND user_id = ?", self.class.rateable_type, self.id, user.id])
             reload
           end
 

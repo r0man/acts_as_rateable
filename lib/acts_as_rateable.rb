@@ -32,22 +32,22 @@ module Juixe
 
         # Helper method to lookup for ratings for a given object.
         # This method is equivalent to obj.ratings
-        def find_ratings_for(instance)
-          Rating.find(:all, :conditions => { :rateable_id => instance.id, :rateable_type => rateable_type }, :order => "created_at DESC")
+        def find_ratings_for(instance, options = { })
+          Rating.find :all, options.reverse_merge(:conditions => { :rateable_id => instance.id, :rateable_type => rateable_type })
         end
 
         # Helper class method to lookup ratings for
         # the mixin rateable type written by a given user.
         # This method is NOT equivalent to Rating.find_ratings_for_user
-        def find_ratings_by_user(user)
-          Rating.find(:all, :conditions => { :user_id => user.id, :rateable_type => rateable_type }, :order => "created_at DESC")
+        def find_ratings_by_user(user, options = { })
+          Rating.find :all, options.reverse_merge(:conditions => { :user_id => user.id, :rateable_type => rateable_type })
         end
 
         # Helper class method to lookup rateable instances
         # with a given rating.
-        def find_by_rating(rating)
+        def find_by_rating(rating, options = { })
 
-          Rating.find(:all, :conditions => { :rating => rating,  :rateable_type => rateable_type}, :order => "created_at DESC").collect do |rating|
+          Rating.find(:all, options.reverse_merge(:conditions => { :rating => rating,  :rateable_type => rateable_type})).collect do |rating|
             rating.rateable
           end.uniq
 
@@ -70,7 +70,7 @@ module Juixe
         def delete_ratings_by_user(user)
 
           if user
-            Rating.delete_all(["rateable_type = ? AND rateable_id = ? AND user_id = ?", self.class.rateable_type, self.id, user.id])
+            Rating.delete_all rateable_conditions.merge(:user_id => user.id)
             reload
           end
 
@@ -81,19 +81,29 @@ module Juixe
           create_rating(rating, user)
         end
 
-        # Helper method that returns the average rating
-        def rating
-          average = 0.0
-          ratings.each { |r|
-            average = average + r.rating
-          }
-          if ratings.size != 0
-            average = average / ratings.size
+        # Returns the average rating of the rateable. The average
+        # rating calculation is done by the database and gets cached
+        # to the instance variable @acts_as_rateable_average_rating.
+        #
+        # ==== Parameters
+        #
+        # * +options+ - Use <tt>:force_reload => true</tt> to re-calculate the average rating.
+        def rating(options = { })
+
+          if @acts_as_rateable_average_rating.nil? or options[:force_reload]
+            @acts_as_rateable_average_rating = Rating.find(:first, :select => "AVG(rating) AS average_rating", :conditions => rateable_conditions).average_rating.to_f
           end
-          average
+
+          @acts_as_rateable_average_rating
+
         end
 
-        # Check to see if a user already rated this rateable
+        # Returns true if the rateable has been rated by the given
+        # +user+, else false.
+        #
+        # ==== Parameters
+        #
+        # * +user+ - The user in question.
         def rated_by_user?(user)
           rtn = false
           if user
@@ -115,6 +125,13 @@ module Juixe
           rating = build_rating(rating, user)
           rating.save!
           rating
+        end
+
+        def rateable_conditions
+          {
+            :rateable_id   => self.id,
+            :rateable_type => self.class.rateable_type
+          }
         end
 
         def validate_rating!(rating)

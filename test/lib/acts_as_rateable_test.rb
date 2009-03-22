@@ -20,7 +20,7 @@ class ActsAsRateableTest < ActiveSupport::TestCase
     assert_equal 1, @article.rating
 
     @article.add_rating Rating.new(:rateable_type => @article.class.to_s, :rateable_id => @article.id, :rating => 2, :user => @alice)
-    assert_equal 2, @article.rating
+    assert_equal 2, @article.rating(:force_reload => true)
 
   end
 
@@ -30,7 +30,7 @@ class ActsAsRateableTest < ActiveSupport::TestCase
     assert_equal 1.0, @article.rating
 
     @article.rate(2, @alice)
-    assert_equal 2, @article.rating
+    assert_equal 2, @article.rating(:force_reload => true)
 
   end
 
@@ -46,7 +46,7 @@ class ActsAsRateableTest < ActiveSupport::TestCase
     assert_equal 1, @article.rating
 
     @article.add_rating Rating.new(:rateable_type => @article.class.to_s, :rateable_id => @article.id, :rating => 2, :user => @bob)
-    assert_equal 1.5, @article.rating
+    assert_equal 1.5, @article.rating(:force_reload => true)
 
   end
 
@@ -56,10 +56,10 @@ class ActsAsRateableTest < ActiveSupport::TestCase
     assert_equal 1.0, @article.rating
 
     @article.rate(2, @alice)
-    assert_equal 2, @article.rating
+    assert_equal 2, @article.rating(:force_reload => true)
 
     @article.rate(4, @bob)
-    assert_equal 3, @article.rating
+    assert_equal 3, @article.rating(:force_reload => true)
 
   end
 
@@ -69,7 +69,7 @@ class ActsAsRateableTest < ActiveSupport::TestCase
     assert_equal 1.0, @article.rating
 
     @article.rate(2)
-    assert_equal 1.5, @article.rating
+    assert_equal 1.5, @article.rating(:force_reload => true)
 
   end
 
@@ -79,7 +79,7 @@ class ActsAsRateableTest < ActiveSupport::TestCase
     assert_equal 1, @article.rating
 
     @article.add_rating Rating.new(:rateable_type => @article.class.to_s, :rateable_id => @article.id, :rating => 2)
-    assert_equal 1.5, @article.rating
+    assert_equal 1.5, @article.rating(:force_reload => true)
 
   end
 
@@ -125,7 +125,7 @@ class ActsAsRateableTest < ActiveSupport::TestCase
     assert_equal [@article], Article.find_by_rating(1)
 
     rating_bob = @article.rate(2, @bob)
-    assert_equal 1.5, @article.rating
+    assert_equal 1.5, @article.rating(:force_reload => true)
     assert_equal [@article], Article.find_by_rating(2)
 
   end

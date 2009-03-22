@@ -91,7 +91,10 @@ module Juixe
         def rating(options = { })
 
           if @acts_as_rateable_average_rating.nil? or options[:force_reload]
-            @acts_as_rateable_average_rating = Rating.find(:first, :select => "AVG(rating) AS average_rating", :conditions => rateable_conditions).average_rating.to_f
+            @acts_as_rateable_average_rating = Rating.send(:with_exclusive_scope) {
+              Rating.find(:first, :select => "AVG(rating) AS average_rating", :conditions => rateable_conditions).average_rating.to_f
+            }
+
           end
 
           @acts_as_rateable_average_rating

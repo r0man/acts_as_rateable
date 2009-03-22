@@ -33,7 +33,8 @@ Make your model rateable:
       article.rating # => 1
 
       article.rate(2, bob)
-      article.rating # => 1.5
+      article.rating # => 1 (cached)
+      article.rating(:force_reload => true) # => 1.5
 
 Look at the tests to see more examples...
 
